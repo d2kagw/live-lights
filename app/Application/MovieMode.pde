@@ -1,5 +1,9 @@
 import processing.video.*;
 
+void movieEvent(Movie m) {
+  m.read();
+}
+
 class MovieMode extends RenderMode {
   Movie movie;
 
@@ -20,6 +24,10 @@ class MovieMode extends RenderMode {
     return true;
   }
 
+  boolean shouldManageCropping() {
+    return true;
+  }
+
   // Start the camera
   void wake_up() {
     println("Movie Wake Up");
@@ -36,8 +44,4 @@ class MovieMode extends RenderMode {
     println("Movie Sleep");
     if (movie != null) movie.stop();
   }
-}
-
-void movieEvent(Movie m) {
-  m.read();
 }

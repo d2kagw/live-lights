@@ -35,6 +35,7 @@ static final int DISPLAY_HEIGHT = VIDEO_HEIGHT;
 // LEDs
 ArrayList tvLEDArray = new ArrayList();
 ArrayList surroundLEDArray = new ArrayList();
+Cropper cropper;
 
 ////
 // Setup
@@ -57,6 +58,7 @@ void setup() {
   // ------------------------
   // Setup Video Processing & UX...
   Histogram.display_height = floor( DISPLAY_HEIGHT / 3.0 );
+  cropper = new Cropper(this, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
 
   // ------------------------
   // Create the TV LEDs
@@ -120,18 +122,6 @@ void setup() {
 }
 
 ////
-// Change Render Mode
-void modeChanged() {
-  // update render modes on the LEDs
-  for (int i = 0; i < LED_TV_TOTAL; i++) {
-    ((LED)tvLEDArray.get(i)).buffer(Renderer.currentRenderer().shouldBufferColour());
-  }
-  for (int i = 0; i < LED_SURROUND_COUNT; i++) {
-    ((LED)surroundLEDArray.get(i)).buffer(Renderer.currentRenderer().shouldBufferColour());
-  }
-}
-
-////
 // Draw
 void draw() {
   // clear the screen
@@ -139,13 +129,28 @@ void draw() {
   background(255,255,255);
 
   // Renderer... DRAW!
-  Renderer.draw(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
-
-  // Back to RGB
-  colorMode(RGB, 100);
-
-  // Load Pixels
+  int render_x = 0;
+  int render_y = 0;
+  int render_width  = VIDEO_WIDTH;
+  int render_height = VIDEO_HEIGHT;
+  
+  // yeah, draw
+  Renderer.draw(render_x, render_y, render_width, render_height);
   loadPixels();
+
+  // But wait, if we're managing cropping, we'll need to crop based on the picture
+  if (Renderer.currentRenderer().shouldManageCropping()) {
+    cropper.calculateBarHeight();
+
+    // don't waste cycles if we're not cropping
+    if ( cropper.barHeight() > 0 ) {
+      render_y = 0 - cropper.barHeight();
+      render_height = VIDEO_HEIGHT + ( cropper.barHeight() * 2 );
+
+      Renderer.draw(render_x, render_y, render_width, render_height);
+      loadPixels();
+    }
+  }
 
   // Process TV LEDs
   for (int i = 0; i < LED_TV_TOTAL; i++) {
@@ -157,4 +162,18 @@ void draw() {
     int[] rgb = ((LED)surroundLEDArray.get(i)).rgbValue();
   }
 
+}
+
+////
+// Change Render Mode
+void modeChanged() {
+  boolean shouldBuf = Renderer.currentRenderer().shouldBufferColour();
+
+  // update render modes on the LEDs
+  for (int i = 0; i < LED_TV_TOTAL; i++) {
+    ((LED)tvLEDArray.get(i)).buffer(shouldBuf);
+  }
+  for (int i = 0; i < LED_SURROUND_COUNT; i++) {
+    ((LED)surroundLEDArray.get(i)).buffer(shouldBuf);
+  }
 }

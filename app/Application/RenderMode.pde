@@ -18,6 +18,10 @@ class RenderMode {
     return SURROUND_COLOR_AVERAGE;
   }
 
+  boolean shouldManageCropping() {
+    return false;
+  }
+
   boolean shouldBufferColour() {
     return false;
   }

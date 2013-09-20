@@ -22,6 +22,10 @@ public class VideoMode extends RenderMode {
     return true;
   }
 
+  boolean shouldManageCropping() {
+    return true;
+  }
+
   // Start the camera
   void wake_up() {
     println("Video Wake Up");

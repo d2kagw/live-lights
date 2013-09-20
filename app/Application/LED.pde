@@ -27,6 +27,8 @@ class LED {
   }
 
   int[] rgbValue() {
+    colorMode(RGB, 100);
+
     // new variable
     int[] rgb = new int[3];
 

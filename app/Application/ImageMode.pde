@@ -1,7 +1,11 @@
 public class ImageMode extends RenderMode {
   PImage img;
 
-  boolean draw(PApplet applet, int x, int y, int width, int height) {
+  ImageMode (PApplet tApplet) {
+    super(tApplet);
+  }
+
+  boolean draw(int x, int y, int width, int height) {
     image(img, 0, 0);
 
     // no errors to report

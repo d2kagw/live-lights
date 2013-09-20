@@ -40,9 +40,13 @@ class LED {
   }
 
   void represent(int r, int g, int b) {
-    stroke(0);
+    int width_4  = width  / 4;
+    int height_4 = height / 4;
+
+    noStroke();
     fill(r, g, b);
-    rect(x, y, width, height);
-    rect(x + ( width / 2 ), y + ( height / 2 ), 1, 1);
+    
+    rect(x + width_4, y + height_4, width_4 * 2, height_4 * 2);
+    // rect(x + ( width / 2 ), y + ( height / 2 ), 1, 1);
   }
 }

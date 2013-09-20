@@ -1,8 +1,12 @@
-public class ColorMode extends RenderMode {
+class ColorMode extends RenderMode {
   int hue = 0;
   int hueMax = 100;
 
-  boolean draw(PApplet applet, int x, int y, int width, int height) {
+  ColorMode (PApplet tApplet) {
+    super(tApplet);
+  }
+
+  boolean draw(int x, int y, int width, int height) {
     // HSB makes spectrums easy
     colorMode(HSB, hueMax);
 

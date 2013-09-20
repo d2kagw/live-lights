@@ -1,11 +1,15 @@
-public class DiscoMode extends RenderMode {
+class DiscoMode extends RenderMode {
   int framesUntilNextModeChange = 0;
   int hueMax = 100;
 
   int currentMode = 0;
   static final int modeCount = 2;
 
-  boolean draw(PApplet applet, int x, int y, int width, int height) {
+  DiscoMode (PApplet tApplet) {
+    super(tApplet);
+  }
+
+  boolean draw(int x, int y, int width, int height) {
     // HSB makes spectrums easy
     colorMode(HSB, hueMax);
 

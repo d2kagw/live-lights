@@ -16,11 +16,13 @@ static final int LED_TV_COLUMNS     = 18;
 static final int LED_TV_ROWS        = 10;
 static final int LED_TV_TOTAL       = ( ( LED_TV_COLUMNS + LED_TV_ROWS ) * 2 ) - 4;
 
-static final int LED_TV_LED_WIDTH   = ceil( VIDEO_WIDTH / ( LED_TV_COLUMNS * 1.0 ) );
-static final int LED_TV_LED_HEIGHT  = ceil( ceil( VIDEO_WIDTH / VIDEO_RATIO ) / LED_TV_ROWS );
+static final int LED_TV_LED_WIDTH    = ceil( VIDEO_WIDTH / ( LED_TV_COLUMNS * 1.0 ) );
+static final int LED_TV_LED_HEIGHT   = ceil( ceil( VIDEO_WIDTH / VIDEO_RATIO ) / LED_TV_ROWS );
+static final int LED_TV_LED_COVERAGE = 100; // PERCENT
 
-static final int LED_SURROUND_MAX   = 4;
-static final int LED_SURROUND_COUNT = 4; // 0 = no surround lights
+static final int LED_SURROUND_MAX      = 4;
+static final int LED_SURROUND_COUNT    = 4; // 0 = no surround lights
+static final int LED_SURROUND_COVERAGE = 100; // PERCENT
 
 // Logging
 static final boolean VERBOSE_LOGGING     = true;
@@ -62,7 +64,7 @@ void setup() {
     int[] temp = columnAndRowForLED(i);
     int x = temp[0] * LED_TV_LED_WIDTH;
     int y = temp[1] * LED_TV_LED_HEIGHT;
-    tvLEDArray.add( new LED(this, x, y, LED_TV_LED_WIDTH, LED_TV_LED_HEIGHT, 5) );
+    tvLEDArray.add( new LED(this, x, y, LED_TV_LED_WIDTH, LED_TV_LED_HEIGHT, LED_TV_LED_COVERAGE) );
   }
 
   // Create the Surround LEDs
@@ -70,38 +72,40 @@ void setup() {
   int surround_height = VIDEO_HEIGHT - (LED_TV_LED_HEIGHT * 2);
   switch (LED_SURROUND_COUNT) {
     case 1:
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH, LED_TV_LED_HEIGHT, surround_width, surround_height, 1) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH, LED_TV_LED_HEIGHT, surround_width, surround_height, LED_SURROUND_COVERAGE) );
       break;
 
     case 2:
       surround_width = surround_width / 2;
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                 , LED_TV_LED_HEIGHT, surround_width, surround_height, 1) );
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + surround_width, LED_TV_LED_HEIGHT, surround_width, surround_height, 1) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                 , LED_TV_LED_HEIGHT, surround_width, surround_height, LED_SURROUND_COVERAGE) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + surround_width, LED_TV_LED_HEIGHT, surround_width, surround_height, LED_SURROUND_COVERAGE) );
       break;
 
     case 3:
       surround_width = surround_width / 3;
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                       , LED_TV_LED_HEIGHT, surround_width, surround_height, 1) );
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH +  surround_width     , LED_TV_LED_HEIGHT, surround_width, surround_height, 1) );
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + (surround_width * 2), LED_TV_LED_HEIGHT, surround_width, surround_height, 1) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                       , LED_TV_LED_HEIGHT, surround_width, surround_height, LED_SURROUND_COVERAGE) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH +  surround_width     , LED_TV_LED_HEIGHT, surround_width, surround_height, LED_SURROUND_COVERAGE) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + (surround_width * 2), LED_TV_LED_HEIGHT, surround_width, surround_height, LED_SURROUND_COVERAGE) );
       break;
 
     case 4:
       surround_width  = surround_width  / 2;
       surround_height = surround_height / 2;
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                 , LED_TV_LED_HEIGHT + surround_height, surround_width, surround_height, 1) );
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + surround_width, LED_TV_LED_HEIGHT + surround_height, surround_width, surround_height, 1) );
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + surround_width, LED_TV_LED_HEIGHT                  , surround_width, surround_height, 1) );
-      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                 , LED_TV_LED_HEIGHT                  , surround_width, surround_height, 1) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                 , LED_TV_LED_HEIGHT + surround_height, surround_width, surround_height, LED_SURROUND_COVERAGE) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + surround_width, LED_TV_LED_HEIGHT + surround_height, surround_width, surround_height, LED_SURROUND_COVERAGE) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH + surround_width, LED_TV_LED_HEIGHT                  , surround_width, surround_height, LED_SURROUND_COVERAGE) );
+      surroundLEDArray.add( new LED(this, LED_TV_LED_WIDTH                 , LED_TV_LED_HEIGHT                  , surround_width, surround_height, LED_SURROUND_COVERAGE) );
       break;
   }
 
   // ------------------------
   // Create Renderers...
-  Renderer.addRenderMode( new ColorMode()    );
-  Renderer.addRenderMode( new SpectrumMode() );
-  Renderer.addRenderMode( new DiscoMode()    );
-  Renderer.addRenderMode( new ImageMode()    );
+  Renderer.addRenderMode( new MovieMode(this)    );
+  Renderer.addRenderMode( new ImageMode(this)    );
+  Renderer.addRenderMode( new ColorMode(this)    );
+  Renderer.addRenderMode( new SpectrumMode(this) );
+  Renderer.addRenderMode( new DiscoMode(this)    );
+  Renderer.addRenderMode( new VideoMode(this)    );
   Renderer.setRenderMode(0);
 
   // ------------------------
@@ -124,7 +128,7 @@ void draw() {
   background(255,255,255);
 
   // Renderer... DRAW!
-  Renderer.draw(this, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+  Renderer.draw(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
 
   // Back to RGB
   colorMode(RGB, 100);

@@ -2,7 +2,11 @@ public class SpectrumMode extends RenderMode {
   float hue    = 0.0;
   float hueMax = 100.0;
 
-  boolean draw(PApplet applet, int x, int y, int width, int height) {
+  SpectrumMode (PApplet tApplet) {
+    super(tApplet);
+  }
+
+  boolean draw(int x, int y, int width, int height) {
     // HSB makes spectrums easy
     colorMode(HSB, hueMax);
 

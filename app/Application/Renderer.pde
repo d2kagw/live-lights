@@ -39,8 +39,8 @@ static class Renderer {
     return (RenderMode)Renderer.getInstance().modes.get(Renderer.getInstance().mode);
   }  
 
-  public static void draw(PApplet applet, int x, int y, int width, int height) {
-    ((RenderMode)Renderer.getInstance().modes.get(Renderer.getInstance().mode)).draw(applet, x, y, width, height);
+  public static void draw(int x, int y, int width, int height) {
+    ((RenderMode)Renderer.getInstance().modes.get(Renderer.getInstance().mode)).draw(x, y, width, height);
   }
   
   // SINGLETON BELOW

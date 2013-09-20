@@ -18,6 +18,10 @@ class RenderMode {
     return SURROUND_COLOR_AVERAGE;
   }
 
+  boolean shouldBufferColour() {
+    return false;
+  }
+
   void optionCycleNext() {
     // override
   }

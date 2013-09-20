@@ -16,6 +16,10 @@ class MovieMode extends RenderMode {
     return true;
   }
 
+  boolean shouldBufferColour() {
+    return true;
+  }
+
   // Start the camera
   void wake_up() {
     println("Movie Wake Up");

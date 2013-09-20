@@ -1,6 +1,7 @@
 class LED {
   int x, y, width, height, coverage;
 
+  boolean should_buffer = true;
   static final int color_buffer_length = 15;
   int[][] color_buffer = new int[color_buffer_length][3];
 
@@ -11,7 +12,7 @@ class LED {
     height   = tHeight;
     coverage = tCoverage;
 
-    // fill the color buffer
+    // fill the color buffer with black
     for (int i=0; i < color_buffer_length; i ++) {
       color_buffer[i][0] = 0;
       color_buffer[i][1] = 0;
@@ -19,6 +20,10 @@ class LED {
     }
 
     println("Adding LED at: " + x + "x" + y);
+  }
+
+  void buffer(boolean newState) {
+    should_buffer = newState;
   }
 
   int[] rgbValue() {
@@ -48,9 +53,9 @@ class LED {
     rgb[1] = average_g / (total_pixels / pixel_coverage);
     rgb[2] = average_b / (total_pixels / pixel_coverage);
 
-    // Buff the color
-    rgb = bufferColor(rgb[0], rgb[1], rgb[2]);
-
+    // Buff the color... if we're buffering colours?
+    if (should_buffer) rgb = bufferColor(rgb[0], rgb[1], rgb[2]);
+    
     // represent & return
     represent(rgb[0], rgb[1], rgb[2]);
     return rgb;

@@ -119,6 +119,17 @@ void setup() {
   println("Setup Complete.");
 }
 
+////
+// Change Render Mode
+void modeChanged() {
+  // update render modes on the LEDs
+  for (int i = 0; i < LED_TV_TOTAL; i++) {
+    ((LED)tvLEDArray.get(i)).buffer(Renderer.currentRenderer().shouldBufferColour());
+  }
+  for (int i = 0; i < LED_SURROUND_COUNT; i++) {
+    ((LED)surroundLEDArray.get(i)).buffer(Renderer.currentRenderer().shouldBufferColour());
+  }
+}
 
 ////
 // Draw

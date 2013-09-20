@@ -23,6 +23,7 @@ void keyPressed(){
     case(' '):
       println("Renderer Cycle");
       Renderer.modeCycle();
+      modeChanged();
       break;
       
     default:

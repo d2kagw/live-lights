@@ -3,7 +3,7 @@ public class Cropper {
   PApplet applet;
   int x, y, width, height;
 
-  int maxEnergy = 15;
+  int maxEnergy = floor(COLOR_SPACE / 5);
   int maxCrop   = 100;
 
   int lastBarHeight;
@@ -26,26 +26,20 @@ public class Cropper {
     int row = 0;
     int row_brightness = 0;
     int pixel_index;
-    int width_intervals = (width / 5);
+    int sample_columns = 30;
+    int width_intervals = (width / (2 + sample_columns));
 
-    colorMode(HSB, 100);
-
+    colorMode(HSB, COLOR_SPACE);
+    row_brightness = 0;
     while (true) {
-      row_brightness  = int(brightness(pixels[(row * DISPLAY_WIDTH) + (width_intervals * 1)]));
-      row_brightness += int(brightness(pixels[(row * DISPLAY_WIDTH) + (width_intervals * 2)]));
-      row_brightness += int(brightness(pixels[(row * DISPLAY_WIDTH) + (width_intervals * 3)]));
-      row_brightness  = row_brightness / 3;
-
-      
-      if (row_brightness > maxEnergy) {
-        break;
+      for (int i=0; i < sample_columns; i ++) {
+        row_brightness += int(brightness(pixels[(row * DISPLAY_WIDTH) + (width_intervals * (i + 1))]));  
       }
+      row_brightness = row_brightness / (sample_columns * 2);
+      if (row_brightness > maxEnergy) break;
       
       row ++;
-      if (row > maxCrop) {
-        println("Giving up at row " + row + " because we're still below our max level");
-        break;
-      }
+      if (row > maxCrop) break;
     }
 
     lastBarHeight = bufferBar(row);
@@ -53,21 +47,17 @@ public class Cropper {
 
   int bufferBar (int height) {
     int[] tempBuffer = (int[])subset(barBuffer, 1);
-    barBuffer = new int[bufferLength];
+           barBuffer = new int[bufferLength];
 
     // copy the old into the new
-    for (int i=0; i < bufferLength - 1; i ++) {
-      barBuffer[i] = tempBuffer[i];
-    }
+    for (int i=0; i < bufferLength - 1; i ++) barBuffer[i] = tempBuffer[i];
 
     // add the new height in at the end
     barBuffer[bufferLength-1] = height;
 
     // buff the height (average)
     height = 0;
-    for (int i=0; i < bufferLength; i ++) {
-      height += barBuffer[i];
-    }
+    for (int i=0; i < bufferLength; i ++) height += barBuffer[i];
 
     return height / bufferLength;
   }

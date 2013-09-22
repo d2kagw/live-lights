@@ -1,9 +1,3 @@
-import processing.video.*;
-
-void movieEvent(Movie m) {
-  m.read();
-}
-
 class MovieMode extends RenderMode {
   Movie movie;
 

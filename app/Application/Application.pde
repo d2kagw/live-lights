@@ -1,7 +1,14 @@
 ////
 // Import Modules
 import processing.serial.*;
+import processing.video.*;
+
 Serial serialConnection;
+
+void movieEvent(Movie m) {
+  m.read();
+}
+
 
 ////
 // Setup Constants

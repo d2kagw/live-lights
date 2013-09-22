@@ -38,6 +38,7 @@ static final boolean ENABLE_SERIAL_COMMS = false;
 // Display Constants
 static final int DISPLAY_WIDTH  = VIDEO_WIDTH + Histogram.display_width;
 static final int DISPLAY_HEIGHT = VIDEO_HEIGHT;
+static final int COLOR_SPACE    = 100;
 
 // LEDs
 ArrayList tvLEDArray = new ArrayList();
@@ -124,7 +125,8 @@ void setup() {
     println(Serial.list());
     serialConnection = new Serial(this, Serial.list()[6], 115200);
   }
-
+  
+  modeChanged();
   println("Setup Complete.");
 }
 
@@ -132,8 +134,8 @@ void setup() {
 // Draw
 void draw() {
   // clear the screen
-  colorMode(RGB, 100);
-  background(255,255,255);
+  colorMode(RGB, COLOR_SPACE);
+  background(100);
 
   // Renderer... DRAW!
   int render_x = 0;
@@ -159,14 +161,32 @@ void draw() {
     }
   }
 
-  // Process TV LEDs
-  for (int i = 0; i < LED_TV_TOTAL; i++) {
-    int[] rgb = ((LED)tvLEDArray.get(i)).rgbValue();
+  // SURROUND LEDS ----------------------
+  int[][] surroundRGB = new int[LED_SURROUND_COUNT][3];
+  if (Renderer.currentRenderer().surroundColorMode() == RenderMode.SURROUND_COLOR_AVERAGE) {
+    // get the LED colours
+    for (int i = 0; i < LED_SURROUND_COUNT; i++) {
+      surroundRGB[i] = ((LED)surroundLEDArray.get(i)).rgbValue();
+    }
+  } else {
+    println("No idea how to handle this surround mode: " + Renderer.currentRenderer().surroundColorMode());
+    exit();
   }
 
-  // Process Surround LEDs
-  for (int i = 0; i < LED_SURROUND_COUNT; i++) {
-    int[] rgb = ((LED)surroundLEDArray.get(i)).rgbValue();
+  // TV LEDS ----------------------
+  int[][] tvRGB = new int[LED_TV_TOTAL][3];
+  if (Renderer.currentRenderer().tvColorMode() == RenderMode.TV_COLOR_GLOBAL) {
+    for (int i = 0; i < LED_TV_TOTAL; i++) {
+      tvRGB[i] = color_average(surroundRGB);
+      ((LED)tvLEDArray.get(i)).represent( tvRGB[i][0], tvRGB[i][1], tvRGB[i][2] );
+    }
+  } else if (Renderer.currentRenderer().tvColorMode() == RenderMode.TV_COLOR_LOCAL) {
+    for (int i = 0; i < LED_TV_TOTAL; i++) {
+      tvRGB[i] = ((LED)tvLEDArray.get(i)).rgbValue();
+    }
+  } else {
+    println("No idea how to handle this tv mode: " + Renderer.currentRenderer().tvColorMode());
+    exit();
   }
 
 }
@@ -175,12 +195,15 @@ void draw() {
 // Change Render Mode
 void modeChanged() {
   boolean shouldBuf = Renderer.currentRenderer().shouldBufferColour();
+  boolean shouldCon = Renderer.currentRenderer().shouldManageContrast();
 
   // update render modes on the LEDs
   for (int i = 0; i < LED_TV_TOTAL; i++) {
     ((LED)tvLEDArray.get(i)).buffer(shouldBuf);
+    ((LED)tvLEDArray.get(i)).manage_contrast(shouldCon);
   }
   for (int i = 0; i < LED_SURROUND_COUNT; i++) {
     ((LED)surroundLEDArray.get(i)).buffer(shouldBuf);
+    ((LED)surroundLEDArray.get(i)).manage_contrast(shouldCon);
   }
 }

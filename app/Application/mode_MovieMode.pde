@@ -22,6 +22,10 @@ class MovieMode extends RenderMode {
     return true;
   }
 
+  boolean shouldManageContrast() {
+    return true;
+  }
+
   // Start the camera
   void wake_up() {
     println("Movie Wake Up");

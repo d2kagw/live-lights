@@ -1,4 +1,4 @@
-public class ImageMode extends RenderMode {
+class ImageMode extends RenderMode {
   PImage img;
 
   ImageMode (PApplet tApplet) {

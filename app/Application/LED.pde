@@ -1,7 +1,8 @@
 class LED {
   int x, y, width, height, coverage;
 
-  boolean should_buffer = true;
+  boolean should_buffer = false;
+  boolean should_manage_contrast = false;
   static final int color_buffer_length = 15;
   int[][] color_buffer = new int[color_buffer_length][3];
 
@@ -24,6 +25,10 @@ class LED {
 
   void buffer(boolean newState) {
     should_buffer = newState;
+  }
+
+  void manage_contrast(boolean newState) {
+    should_manage_contrast = newState;
   }
 
   int[] rgbValue() {
@@ -54,6 +59,9 @@ class LED {
     rgb[0] = average_r / (total_pixels / pixel_coverage);
     rgb[1] = average_g / (total_pixels / pixel_coverage);
     rgb[2] = average_b / (total_pixels / pixel_coverage);
+
+    // Amplify the colour
+    if (should_manage_contrast) rgb = color_amplify(rgb);
 
     // Buff the color... if we're buffering colours?
     if (should_buffer) rgb = bufferColor(rgb[0], rgb[1], rgb[2]);

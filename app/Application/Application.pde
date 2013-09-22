@@ -12,6 +12,7 @@ void movieEvent(Movie m) {
 
 ////
 // Setup Constants
+static final boolean ENABLE_SERIAL_COMMS = true;
 
 // TV/Video Processing Constants
 static final float VIDEO_RATIO  = 16.0 / 9.0;
@@ -30,10 +31,6 @@ static final int LED_TV_LED_COVERAGE = 100; // PERCENT
 static final int LED_SURROUND_MAX      = 4;
 static final int LED_SURROUND_COUNT    = 4; // 0 = no surround lights
 static final int LED_SURROUND_COVERAGE = 100; // PERCENT
-
-// Logging
-static final boolean VERBOSE_LOGGING     = true;
-static final boolean ENABLE_SERIAL_COMMS = false;
 
 // Display Constants
 static final int DISPLAY_WIDTH  = VIDEO_WIDTH;
@@ -122,7 +119,7 @@ void setup() {
   if (ENABLE_SERIAL_COMMS) {
     println("Here are our serial ports:");
     println(Serial.list());
-    serialConnection = new Serial(this, Serial.list()[6], 115200);
+    serialConnection = new Serial(this, Serial.list()[4], 115200);
   }
   
   modeChanged();
@@ -188,6 +185,11 @@ void draw() {
     exit();
   }
 
+  // Produce the byte array
+  if (ENABLE_SERIAL_COMMS) {
+    byte[] pixel_data = pixelData( (int[][])concat(tvRGB, surroundRGB) );
+    serialConnection.write(pixel_data);
+  }
 }
 
 ////

@@ -36,7 +36,7 @@ static final boolean VERBOSE_LOGGING     = true;
 static final boolean ENABLE_SERIAL_COMMS = false;
 
 // Display Constants
-static final int DISPLAY_WIDTH  = VIDEO_WIDTH + Histogram.display_width;
+static final int DISPLAY_WIDTH  = VIDEO_WIDTH;
 static final int DISPLAY_HEIGHT = VIDEO_HEIGHT;
 static final int COLOR_SPACE    = 100;
 
@@ -65,8 +65,7 @@ void setup() {
 
   // ------------------------
   // Setup Video Processing & UX...
-  Histogram.display_height = floor( DISPLAY_HEIGHT / 3.0 );
-  cropper = new Cropper(this, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+  cropper   = new Cropper(this, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
 
   // ------------------------
   // Create the TV LEDs

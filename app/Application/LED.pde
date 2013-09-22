@@ -32,7 +32,7 @@ class LED {
   }
 
   int[] rgbValue() {
-    colorMode(RGB, 100);
+    colorMode(RGB, COLOR_SPACE);
 
     // new variable
     int[] rgb = new int[3];

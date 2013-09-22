@@ -106,12 +106,14 @@ void setup() {
 
   // ------------------------
   // Create Renderers...
-  Renderer.addRenderMode( new MovieMode(this)    );
-  Renderer.addRenderMode( new ImageMode(this)    );
-  Renderer.addRenderMode( new ColorMode(this)    );
-  Renderer.addRenderMode( new SpectrumMode(this) );
-  Renderer.addRenderMode( new DiscoMode(this)    );
-  Renderer.addRenderMode( new VideoMode(this)    );
+  // Add them in order
+  Renderer.addRenderMode( new MovieMode(this)     );
+  Renderer.addRenderMode( new MovieToneMode(this) );
+  Renderer.addRenderMode( new ImageMode(this)     );
+  Renderer.addRenderMode( new ColorMode(this)     );
+  Renderer.addRenderMode( new SpectrumMode(this)  );
+  Renderer.addRenderMode( new DiscoMode(this)     );
+  Renderer.addRenderMode( new VideoMode(this)     );
   Renderer.setRenderMode(0);
 
   // ------------------------

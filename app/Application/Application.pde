@@ -3,7 +3,8 @@
 import processing.serial.*;
 import processing.video.*;
 
-Serial serialConnection;
+Serial serialTVArduino;
+Serial serialSurroundXbee;
 
 void movieEvent(Movie m) {
   m.read();
@@ -12,11 +13,11 @@ void movieEvent(Movie m) {
 
 ////
 // Setup Constants
-static final boolean ENABLE_SERIAL_COMMS = true;
+static final boolean ENABLE_SERIAL_COMMS = false;
 
 // TV/Video Processing Constants
 static final float VIDEO_RATIO  = 16.0 / 9.0;
-static final int   VIDEO_WIDTH  = 1920 / 4;
+static final int   VIDEO_WIDTH  = 1920 / 6;
 static final int   VIDEO_HEIGHT = ceil( VIDEO_WIDTH / VIDEO_RATIO );
 
 // LED Constants
@@ -28,14 +29,14 @@ static final int LED_TV_LED_WIDTH    = ceil( VIDEO_WIDTH / ( LED_TV_COLUMNS * 1.
 static final int LED_TV_LED_HEIGHT   = ceil( ceil( VIDEO_WIDTH / VIDEO_RATIO ) / LED_TV_ROWS );
 static final int LED_TV_LED_COVERAGE = 100; // PERCENT
 
-static final int LED_SURROUND_MAX      = 4;
-static final int LED_SURROUND_COUNT    = 4; // 0 = no surround lights
-static final int LED_SURROUND_COVERAGE = 100; // PERCENT
+static final int LED_SURROUND_MAX      = 4; // Don't change this
+static final int LED_SURROUND_COUNT    = 2; // 0 = no surround lights, currently 4 max...
+static final int LED_SURROUND_COVERAGE = 25; // PERCENT
 
 // Display Constants
 static final int DISPLAY_WIDTH  = VIDEO_WIDTH;
 static final int DISPLAY_HEIGHT = VIDEO_HEIGHT;
-static final int COLOR_SPACE    = 100;
+static final int COLOR_SPACE    = 255;
 
 // LEDs
 ArrayList tvLEDArray = new ArrayList();
@@ -55,14 +56,36 @@ void setup() {
   }
 
   // ------------------------
+  // Enable Serial Comms...
+  if (ENABLE_SERIAL_COMMS) {
+    try {
+      println("Connecting to TV Arduino via USB Serial...");
+      String serialPort = serialIndexFor("tty.usbmodem");
+      serialTVArduino = new Serial(this, serialPort, 115200);
+    } catch (Exception e) {
+      println(e);
+      exit();
+    }
+
+    try {
+      println("Connecting to Xbee via FTDI USB cable...");
+      String serialPort = serialIndexFor("tty.usbserial");
+      serialSurroundXbee = new Serial(this, serialPort, 9600);
+    } catch (Exception e) {
+      println(e);
+      exit();
+    }
+  }
+
+  // ------------------------
   // Create Display...
-  println(" - Creating display: " + DISPLAY_WIDTH + "x" + DISPLAY_HEIGHT);
+  println("Creating display: " + DISPLAY_WIDTH + "x" + DISPLAY_HEIGHT);
   size(DISPLAY_WIDTH, DISPLAY_HEIGHT);
   noSmooth();
 
   // ------------------------
   // Setup Video Processing & UX...
-  cropper   = new Cropper(this, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
+  cropper = new Cropper(this, 0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
 
   // ------------------------
   // Create the TV LEDs
@@ -73,6 +96,7 @@ void setup() {
     tvLEDArray.add( new LED(this, x, y, LED_TV_LED_WIDTH, LED_TV_LED_HEIGHT, LED_TV_LED_COVERAGE) );
   }
 
+  // ------------------------
   // Create the Surround LEDs
   int surround_width  = VIDEO_WIDTH  - (LED_TV_LED_WIDTH  * 2);
   int surround_height = VIDEO_HEIGHT - (LED_TV_LED_HEIGHT * 2);
@@ -115,14 +139,6 @@ void setup() {
   Renderer.addRenderMode( new DiscoMode(this)     );
   Renderer.addRenderMode( new VideoMode(this)     );
   Renderer.setRenderMode(0);
-
-  // ------------------------
-  // Enable Serial Comms...
-  if (ENABLE_SERIAL_COMMS) {
-    println("Here are our serial ports:");
-    println(Serial.list());
-    serialConnection = new Serial(this, Serial.list()[4], 115200);
-  }
   
   modeChanged();
   println("Setup Complete.");
@@ -133,7 +149,7 @@ void setup() {
 void draw() {
   // clear the screen
   colorMode(RGB, COLOR_SPACE);
-  background(100);
+  background(COLOR_SPACE);
 
   // Renderer... DRAW!
   int render_x = 0;
@@ -170,6 +186,11 @@ void draw() {
     println("No idea how to handle this surround mode: " + Renderer.currentRenderer().surroundColorMode());
     exit();
   }
+  
+  println(surroundData(surroundRGB));
+  if (ENABLE_SERIAL_COMMS) {
+    serialSurroundXbee.write(surroundData(surroundRGB));
+  }
 
   // TV LEDS ----------------------
   int[][] tvRGB = new int[LED_TV_TOTAL][3];
@@ -187,11 +208,10 @@ void draw() {
     exit();
   }
 
-  // Produce the byte array
   if (ENABLE_SERIAL_COMMS) {
-    byte[] pixel_data = pixelData( (int[][])concat(tvRGB, surroundRGB) );
-    serialConnection.write(pixel_data);
+    serialTVArduino.write(tvData(tvRGB));
   }
+
 }
 
 ////

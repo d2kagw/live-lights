@@ -10,7 +10,7 @@ GPIO.setmode(GPIO.BOARD)
 UDP_IP = "192.168.0.255"
 UDP_PORT = 11647
 
-FPS = 1.0/12.0
+FPS = 1.0/24.0
 
 pinRed    = 11
 pinYellow = 13
@@ -21,6 +21,15 @@ pinRGB_B = 40
 
 pinSwitch_Left  = 37
 pinSwitch_Right = 35
+
+# ---------------------
+
+INC_Red    = random.random() / 10
+INC_Green  = random.random() / 10
+INC_Blue   = random.random() / 10
+INC_speeds = [1, 5, 10]
+INC_speed  = 0
+INC_active = True
 
 # ---------------------
 
@@ -40,11 +49,21 @@ for pin in switchPins:
 
 def toggleRedLED(channel):
   GPIO.output(pinRed, GPIO.HIGH)
+
+  global INC_active
+  INC_active = INC_active == False
+
   time.sleep(0.1)
   GPIO.output(pinRed, GPIO.LOW)
 
 def toggleYellowLED(channel):
   GPIO.output(pinYellow, GPIO.HIGH)
+  
+  global INC_speed
+  INC_speed += 1
+  if INC_speed > 2:
+    INC_speed = 0
+
   time.sleep(0.1)
   GPIO.output(pinYellow, GPIO.LOW)
 
@@ -68,8 +87,8 @@ rgbB = GPIO.PWM(pinRGB_B, 50)
 rgbB.start(0)
 
 r = 0.0
-g = 0.5
-b = 0.99
+g = 0.0
+b = 0.0
 
 while True:
   rVal = (math.sin(r)*50)+50
@@ -81,11 +100,12 @@ while True:
   bVal = (math.sin(b)*50)+50
   rgbB.ChangeDutyCycle(bVal)
 
-  r += 0.01
-  g += 0.02
-  b += 0.03
-
   message = "%i,%i,%i" % ( ((rVal/100)*255), ((gVal/100)*255), ((bVal/100)*255) )
   sock.sendto(message, (UDP_IP, UDP_PORT))
+
+  if INC_active:
+    r += INC_Red * INC_speeds[INC_speed]
+    g += INC_Green * INC_speeds[INC_speed]
+    b += INC_Blue * INC_speeds[INC_speed]
 
   time.sleep(FPS)

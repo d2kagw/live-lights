@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
-import time, math, random, socket
+import time, socket
+import colorsys
 
 GPIO.setwarnings(False)
 GPIO.cleanup()
@@ -24,10 +25,7 @@ pinSwitch_Right = 35
 
 # ---------------------
 
-INC_Red    = random.random() / 10
-INC_Green  = random.random() / 10
-INC_Blue   = random.random() / 10
-INC_speeds = [1, 5, 10]
+INC_speeds = [0.001, 0.01, 0.1]
 INC_speed  = 0
 INC_active = True
 
@@ -86,26 +84,20 @@ rgbG.start(0)
 rgbB = GPIO.PWM(pinRGB_B, 50)
 rgbB.start(0)
 
-r = 0.0
-g = 0.0
-b = 0.0
+hue = 0.0
 
 while True:
-  rVal = (math.sin(r)*50)+50
-  rgbR.ChangeDutyCycle(rVal)
+  color = hsv_to_rgb(hue, 1.0, 1.0)
+  rgbR.ChangeDutyCycle(color[0])
+  rgbG.ChangeDutyCycle(color[1])
+  rgbB.ChangeDutyCycle(color[2])
 
-  gVal = (math.cos(g)*50)+50
-  rgbG.ChangeDutyCycle(gVal)
-
-  bVal = (math.sin(b)*50)+50
-  rgbB.ChangeDutyCycle(bVal)
-
-  message = "%i,%i,%i" % ( ((rVal/100)*255), ((gVal/100)*255), ((bVal/100)*255) )
+  message = "%i,%i,%i" % ( rVal*255, gVal*255, bVal*255 )
   sock.sendto(message, (UDP_IP, UDP_PORT))
 
   if INC_active:
-    r += INC_Red * INC_speeds[INC_speed]
-    g += INC_Green * INC_speeds[INC_speed]
-    b += INC_Blue * INC_speeds[INC_speed]
+    hue += INC_speeds[INC_speed]
+    if hue > 1.0:
+      hue = 0.0
 
   time.sleep(FPS)

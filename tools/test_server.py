@@ -87,10 +87,10 @@ rgbB.start(0)
 hue = 0.0
 
 while True:
-  color = hsv_to_rgb(hue, 1.0, 1.0)
-  rgbR.ChangeDutyCycle(color[0])
-  rgbG.ChangeDutyCycle(color[1])
-  rgbB.ChangeDutyCycle(color[2])
+  color = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+  rgbR.ChangeDutyCycle(int(color[0]))
+  rgbG.ChangeDutyCycle(int(color[1]))
+  rgbB.ChangeDutyCycle(int(color[2]))
 
   message = "%i,%i,%i" % ( rVal*255, gVal*255, bVal*255 )
   sock.sendto(message, (UDP_IP, UDP_PORT))

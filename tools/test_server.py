@@ -1,103 +1,121 @@
 import RPi.GPIO as GPIO
-import time, socket
+import time
 import colorsys
+import socket
 
-GPIO.setwarnings(False)
-GPIO.cleanup()
-GPIO.setmode(GPIO.BOARD)
 
-# ---------------------
+# CONSTANTS
+# -------------------------------------
+PINS = {
+  'led_power_1': 17,
+
+  'button_1': 12,
+  'button_2': 5,
+  'button_3': 6,
+
+  'rgb_1_r': 16,
+  'rgb_1_g': 21,
+  'rgb_1_b': 20,
+
+  'rgb_2_r': 26,
+  'rgb_2_g': 13,
+  'rgb_2_b': 19
+}
+
+PINS_LED = [
+  'led_power_1',
+  'rgb_1_r', 'rgb_1_g', 'rgb_1_b',
+  'rgb_2_r', 'rgb_2_g', 'rgb_2_b'
+]
+
+PINS_RGB_LED = [
+  'rgb_1_r', 'rgb_1_g', 'rgb_1_b',
+  'rgb_2_r', 'rgb_2_g', 'rgb_2_b'
+]
+
+PWM_PINS = {}
+
+PINS_SWITCH = [
+  'button_1',
+  'button_2',
+  'button_3'
+]
 
 UDP_IP = "192.168.0.255"
 UDP_PORT = 11647
 
 FPS = 1.0/24.0
 
-pinRed    = 11
-pinYellow = 13
 
-pinRGB_R = 36
-pinRGB_G = 38
-pinRGB_B = 40
+# GPIO SETUP
+# -------------------------------------
+GPIO.setwarnings(False)
+GPIO.cleanup()
+GPIO.setmode(GPIO.BCM)
 
-pinSwitch_Left  = 37
-pinSwitch_Right = 35
-
-# ---------------------
-
-INC_speeds = [0.001, 0.01, 0.1]
-INC_speed  = 0
-INC_active = True
-
-# ---------------------
-
-ledPins = [pinRed, pinYellow, pinRGB_R, pinRGB_G, pinRGB_B]
-switchPins = [pinSwitch_Left, pinSwitch_Right]
-
-# ---------------------
-
-for pin in ledPins:
-  GPIO.setup(pin, GPIO.OUT)
-  GPIO.output(pin, GPIO.LOW)
-
-for pin in switchPins:
-  GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-# ---------------------
-
-def toggleRedLED(channel):
-  GPIO.output(pinRed, GPIO.HIGH)
-
-  global INC_active
-  INC_active = INC_active == False
-
-  time.sleep(0.1)
-  GPIO.output(pinRed, GPIO.LOW)
-
-def toggleYellowLED(channel):
-  GPIO.output(pinYellow, GPIO.HIGH)
+for pin in PINS_LED:
+  pin_id = PINS[pin]
   
-  global INC_speed
-  INC_speed += 1
-  if INC_speed > 2:
-    INC_speed = 0
+  GPIO.setup(pin_id, GPIO.OUT)
+  GPIO.output(pin_id, GPIO.LOW)
 
-  time.sleep(0.1)
-  GPIO.output(pinYellow, GPIO.LOW)
+for pin in PINS_RGB_LED:
+  pin_id = PINS[pin]
+  
+  PWM_PINS[pin] = GPIO.PWM(pin_id, 50)
+  PWM_PINS[pin].start(0)
 
-GPIO.add_event_detect(pinSwitch_Right, GPIO.FALLING, callback=toggleRedLED, bouncetime=300)
-GPIO.add_event_detect(pinSwitch_Left, GPIO.FALLING, callback=toggleYellowLED, bouncetime=300)
+for pin in PINS_SWITCH:
+  pin_id = PINS[pin]
+  
+  GPIO.setup(pin_id, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-# ---------------------
+GPIO.output(PINS['led_power_1'], GPIO.HIGH)
 
+
+# BUTTON SETUP
+# -------------------------------------
+def button_1_callback(channel):
+  print "button 1"
+
+def button_2_callback(channel):
+  print "button 2"
+
+def button_3_callback(channel):
+  print "button 3"
+
+GPIO.add_event_detect(PINS['button_1'], GPIO.FALLING, callback=button_1_callback, bouncetime=300)
+GPIO.add_event_detect(PINS['button_2'], GPIO.FALLING, callback=button_2_callback, bouncetime=300)
+GPIO.add_event_detect(PINS['button_3'], GPIO.FALLING, callback=button_3_callback, bouncetime=300)
+
+
+# SOCKET SETUP
+# -------------------------------------
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-# ---------------------
 
-rgbR = GPIO.PWM(pinRGB_R, 50)
-rgbR.start(0)
-
-rgbG = GPIO.PWM(pinRGB_G, 50)
-rgbG.start(0)
-
-rgbB = GPIO.PWM(pinRGB_B, 50)
-rgbB.start(0)
-
-hue = 0.0
+# BROADCAST
+# -------------------------------------
+hue = [ 0.0, 0.5 ]
 
 while True:
-  color = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
-  rgbR.ChangeDutyCycle(int(color[0]))
-  rgbG.ChangeDutyCycle(int(color[1]))
-  rgbB.ChangeDutyCycle(int(color[2]))
+  sock.sendto("%0.2f" % (hue[0]), (UDP_IP, UDP_PORT))
+  
+  print "hue %0.2f - %0.2f" % (hue[0], hue[1])
 
-  message = "%i,%i,%i" % ( rVal*255, gVal*255, bVal*255 )
-  sock.sendto(message, (UDP_IP, UDP_PORT))
+  color = colorsys.hsv_to_rgb(hue[0], 1.0, 1.0)
+  PWM_PINS['rgb_1_r'].ChangeDutyCycle(int(color[0]*100))
+  PWM_PINS['rgb_1_g'].ChangeDutyCycle(int(color[1]*100))
+  PWM_PINS['rgb_1_b'].ChangeDutyCycle(int(color[2]*100))
 
-  if INC_active:
-    hue += INC_speeds[INC_speed]
-    if hue > 1.0:
-      hue = 0.0
+  hue[0] = 0.0 if hue[0] > 1.0 else (hue[0] + 0.01)
+  
+  color = colorsys.hsv_to_rgb(hue[1], 1.0, 1.0)
+  PWM_PINS['rgb_2_r'].ChangeDutyCycle(int(color[0]*100))
+  PWM_PINS['rgb_2_g'].ChangeDutyCycle(int(color[1]*100))
+  PWM_PINS['rgb_2_b'].ChangeDutyCycle(int(color[2]*100))
+
+  hue[1] = 0.0 if hue[1] > 1.0 else (hue[1] + 0.01)
 
   time.sleep(FPS)

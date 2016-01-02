@@ -4,10 +4,13 @@ import cv2, colorsys
 import math, random
 
 import config
+import rpi, strip
 
-class ManagerMode(object):
+# ------------------------------    
+
+class Mode(object):
   def __init__(self):
-    super(ManagerMode, self).__init__()
+    super(Mode, self).__init__()
     
     depth = (config.VIDEO_HEIGHT, config.VIDEO_WIDTH, 3)
     self.image = np.zeros(depth, np.uint8)
@@ -24,11 +27,7 @@ class ManagerMode(object):
   def draw(self):
     return self.image
 
-
-# ------------------------------    
-
-
-class FixedColorMode(ManagerMode):
+class FixedColorMode(Mode):
   def __init__(self):
     super(FixedColorMode, self).__init__()
 
@@ -58,13 +57,12 @@ class FixedColorMode(ManagerMode):
 
     return self.image
 
-
-class CyclingColorMode(ManagerMode):
+class CyclingColorMode(Mode):
   def __init__(self):
     super(CyclingColorMode, self).__init__()
 
     self.hue = 0.0
-    self.increment = 0.01
+    self.increment = 0.05
 
   def setup(self):
     self.hue = 0.0
@@ -81,28 +79,33 @@ class CyclingColorMode(ManagerMode):
 
     return self.image
 
-
-# ------------------------------    
-
+# ------------------------------
 
 class Manager(object):
   def __init__(self):
     super(Manager, self).__init__()
     
+    self.strip = strip.Strip()
+    self.rgb_a = config.RPI_RGB_LEDS[0]
+    self.rgb_b = config.RPI_RGB_LEDS[1]
+
     self.modes = [
       FixedColorMode(),
       CyclingColorMode()
     ]
-    print "Defining modes: %s" % self.modes
 
     self.mode = False
-    self.mode_index = -1
-    self.toggle()
+    self.mode_index = 1
+    self.toggle(self.mode_index)
 
     self.window = False
 
-  def toggle(self):
-    self.mode_index += 1
+  def toggle(self, mode_index = False):
+    if mode_index is not False:
+      self.mode_index = mode_index
+    else:  
+      self.mode_index += 1
+    
     if self.mode_index >= len(self.modes):
       self.mode_index = 0
 
@@ -123,5 +126,13 @@ class Manager(object):
   def go(self):
     image = self.mode.draw()
 
-    self.window = cv2.imshow('LiveLights', image)
-    self.window = cv2.waitKey(int(config.FPS * 1000))
+    if config.OUTPUT_SURROUND:
+      image = self.rgb_a.process_image(image)
+      image = self.rgb_b.process_image(image)
+
+    if config.OUTPUT_STRIP:
+      image = self.strip.process_image(image)
+
+    if config.OUTPUT_WINDOW:
+      self.window = cv2.imshow('LiveLights', image)
+      self.window = cv2.waitKey(int(config.FPS * 1000))

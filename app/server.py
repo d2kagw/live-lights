@@ -8,7 +8,6 @@ import rpi
 rpi.setup()
 config.setup_rpi()
 
-import strip
 import manager
 
 # ------------------------------
@@ -32,7 +31,7 @@ config.RPI_SWITCHES[2].click( mngr.adjust_b )
 
 # ------------------------------
 
-power_led = config.RPI_POWER_LED.on()
+config.RPI_POWER_LED.on()
 
 # ------------------------------
 

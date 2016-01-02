@@ -27,8 +27,36 @@ class BaseAnalyser(object):
     # color is always 0-255
     [0, 0, 0]
 
-
 class HueAnalyser(BaseAnalyser):
+  def process(self, image):
+    h = []
+
+    for x in range(self.start_x, self.end_x, self.coverage_x):
+      for y in range(self.start_y, self.end_y, self.coverage_y):
+        hsv = colorsys.rgb_to_hsv(image[y][x][2] / 255.0, image[y][x][1] / 255.0, image[y][x][0] / 255.0)
+        h += [hsv[0]]
+
+        if config.OUTPUT_WINDOW:
+          cv2.line(image, (x, y), (x, y), (250, 250, 250), 1)
+
+    average_hue = np.average(h)
+    rgb = colorsys.hsv_to_rgb(average_hue, 1.0, 1.0)
+
+    self._color = [
+      int(rgb[0] * 255.0),
+      int(rgb[1] * 255.0),
+      int(rgb[2] * 255.0)
+    ]
+
+    # if config.OUTPUT_WINDOW:
+    #   cv2.rectangle(image, (self.start_x, self.start_y), (self.end_x, self.end_y), (250, 250, 250), 1)
+    
+    return image
+
+  def color(self):
+    return self._color
+
+class AvgAnalyser(BaseAnalyser):
   def process(self, image):
     r = []
     g = []
@@ -41,7 +69,7 @@ class HueAnalyser(BaseAnalyser):
         b += [image[y][x][0]]
 
         if config.OUTPUT_WINDOW:
-          cv2.line(image, (x, y), (x, y), (150, 150, 150), 1)
+          cv2.line(image, (x, y), (x, y), (250, 250, 250), 1)
 
     self._color = [
       np.average(r),
@@ -49,8 +77,8 @@ class HueAnalyser(BaseAnalyser):
       np.average(b)
     ]
 
-    if config.OUTPUT_WINDOW:
-      cv2.rectangle(image, (self.start_x, self.start_y), (self.end_x, self.end_y), (150, 150, 150), 1)
+    # if config.OUTPUT_WINDOW:
+    #   cv2.rectangle(image, (self.start_x, self.start_y), (self.end_x, self.end_y), (250, 250, 250), 1)
     
     return image
 

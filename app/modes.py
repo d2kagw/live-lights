@@ -16,7 +16,7 @@ class Mode(object):
   def cleanup(self):
     pass
 
-  def adjust(self, index):
+  def adjust(self):
     pass
 
   def draw(self):
@@ -26,8 +26,15 @@ class ImageMode(Mode):
   def __init__(self):
     super(ImageMode, self).__init__()
 
+    self.index = 0
+
+  def adjust(self):
+    self.index += 1
+    if self.index >= 3:
+      self.index = 0
+
   def draw(self):
-    self.image = cv2.imread('3.jpg', 1)
+    self.image = cv2.imread('%i.jpg' % self.index, 1)
     return self.image
 
 class FixedColorMode(Mode):
@@ -40,11 +47,8 @@ class FixedColorMode(Mode):
   def setup(self):
     self.hue = 0.0
 
-  def adjust(self, index):
-    if index == 0:
-      self.hue -= self.increment
-    else:
-      self.hue += self.increment
+  def adjust(self):
+    self.hue += self.increment
 
     if self.hue < 0.0:
       self.hue = 1.0
@@ -65,10 +69,16 @@ class CyclingColorMode(Mode):
     super(CyclingColorMode, self).__init__()
 
     self.hue = 0.0
-    self.increment = 0.01
+    self.increment_speeds = [0.1, 0.01, 0.001]
+    self.increment_speed = 1
 
   def setup(self):
     self.hue = 0.0
+
+  def adjust(self):
+    self.increment_speed += 1
+    if self.increment_speed >= len(self.increment_speeds):
+      self.increment_speed = 0
 
   def draw(self):
     rgb = colorsys.hsv_to_rgb(self.hue, 1.0, 1.0)
@@ -76,7 +86,7 @@ class CyclingColorMode(Mode):
 
     cv2.rectangle(self.image, (0, 0), (config.VIDEO_WIDTH, config.VIDEO_HEIGHT), color, -1 )
 
-    self.hue += self.increment
+    self.hue += self.increment_speeds[self.increment_speed]
     if self.hue > 1.0:
       self.hue = 0.0
 

@@ -26,9 +26,18 @@ signal.signal(signal.SIGINT, exit_handler)
 # ------------------------------
 
 mngr = manager.Manager()
-config.RPI_SWITCHES[0].click( mngr.toggle )
-config.RPI_SWITCHES[1].click( mngr.adjust_a )
-config.RPI_SWITCHES[2].click( mngr.adjust_b )
+
+# toggle_analysis_schema
+config.RPI_SWITCHES[0].click( mngr.toggle_analysis_schema )
+
+# toggle_analysis_mode
+config.RPI_SWITCHES[1].click( mngr.toggle_analysis_mode )
+
+# toggle_image_mode
+config.RPI_SWITCHES[2].click( mngr.toggle_image_mode )
+
+# adjust_image_mode
+config.RPI_SWITCHES[3].click( mngr.adjust_image_mode )
 
 # ------------------------------
 

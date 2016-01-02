@@ -12,9 +12,10 @@ def setup_rpi():
   global RPI_RGB_LEDS
 
   RPI_SWITCHES = [
-    rpi.SwitchPin('toggle', 12),
-    rpi.SwitchPin('adjust_1', 5),
-    rpi.SwitchPin('adjust_2', 6)
+    rpi.SwitchPin('toggle_analysis_schema', 12),
+    rpi.SwitchPin('toggle_analysis_mode', 5),
+    rpi.SwitchPin('toggle_image_mode', 6),
+    rpi.SwitchPin('adjust_image_mode', 25)
   ]
 
   RPI_POWER_LED = rpi.LEDPin('power', 17)

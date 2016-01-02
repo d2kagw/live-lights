@@ -7,10 +7,7 @@ class Mode(object):
   def __init__(self):
     super(Mode, self).__init__()
     
-    depth = (config.WINDOW_HEIGHT, config.WINDOW_WIDTH, 3)
-    print "DEPTH"
-    print depth
-
+    depth = (config.VIDEO_HEIGHT, config.VIDEO_WIDTH, 3)
     self.image = np.zeros(depth, np.uint8)
 
   def setup(self):
@@ -23,6 +20,14 @@ class Mode(object):
     pass
 
   def draw(self):
+    return self.image
+
+class ImageMode(Mode):
+  def __init__(self):
+    super(ImageMode, self).__init__()
+
+  def draw(self):
+    self.image = cv2.imread('3.jpg', 1)
     return self.image
 
 class FixedColorMode(Mode):

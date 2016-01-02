@@ -33,9 +33,9 @@ UDP_PORT = 11647
 
 FPS = 1.0 / 24.0
 
-OUTPUT_WINDOW = True
-OUTPUT_SURROUND = True
 OUTPUT_STRIP = True
+OUTPUT_SURROUND = True
+OUTPUT_WINDOW = True
 
 VIDEO_RATIO  = 16.0 / 9.0
 VIDEO_WIDTH  = 1920 / 6
@@ -45,10 +45,4 @@ STRIP_COLUMNS = 18 # includes corners/edges
 STRIP_ROWS    = 10 # includes corners/edges
 STRIP_TOTAL   = ( ( STRIP_COLUMNS + STRIP_ROWS ) * 2 ) - 4
 
-ANALYSIS_COVERAGE = 0.9 # 0.0 - 1.0, don't do either ends
-
-WINDOW_WIDTH  = int(max(VIDEO_WIDTH, VIDEO_HEIGHT) * 1.25)
-WINDOW_HEIGHT = WINDOW_WIDTH
-
-# LED_TV_LED_WIDTH    = ceil( VIDEO_WIDTH / ( LED_TV_COLUMNS * 1.0 ) )
-# LED_TV_LED_HEIGHT   = ceil( ceil( VIDEO_WIDTH / VIDEO_RATIO ) / LED_TV_ROWS )
+ANALYSIS_COVERAGE = 0.3 # 0.9 = ~10%, 0.1 = ~90%

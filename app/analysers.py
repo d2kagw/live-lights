@@ -17,9 +17,8 @@ class BaseAnalyser(object):
 
     self._color = [0, 0, 0]
 
-    coverage = abs(config.ANALYSIS_COVERAGE - 1.0)
-    self.coverage_x = int((self.end_x - self.start_x) * coverage)
-    self.coverage_y = int((self.end_y - self.start_y) * coverage)
+    self.coverage_x = int(math.ceil((self.end_x - self.start_x) * config.ANALYSIS_COVERAGE))
+    self.coverage_y = int(math.ceil((self.end_y - self.start_y) * config.ANALYSIS_COVERAGE))
 
   def process(self, image):
     return image
@@ -42,7 +41,7 @@ class HueAnalyser(BaseAnalyser):
         b += [image[y][x][0]]
 
         if config.OUTPUT_WINDOW:
-          cv2.line(image, (y, x), (y+1, x), (200, 200, 200), 1)
+          cv2.line(image, (x, y), (x, y), (150, 150, 150), 1)
 
     self._color = [
       np.average(r),
@@ -51,7 +50,7 @@ class HueAnalyser(BaseAnalyser):
     ]
 
     if config.OUTPUT_WINDOW:
-      cv2.rectangle(image, (self.start_x, self.start_y), (self.end_x, self.end_y), (200, 200, 200), 4)
+      cv2.rectangle(image, (self.start_x, self.start_y), (self.end_x, self.end_y), (150, 150, 150), 1)
     
     return image
 

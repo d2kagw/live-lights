@@ -15,6 +15,7 @@ import manager
 def cleanup(): 
   print "Shutting down..."
   rpi.cleanup()
+  mngr.cleanup()
 
 def exit_handler(signum, frame):
   cleanup()
@@ -37,6 +38,5 @@ config.RPI_POWER_LED.on()
 
 while True:
   mngr.go()
-  time.sleep(config.FPS)
 
 cleanup()

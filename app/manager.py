@@ -1,85 +1,6 @@
 #!/usr/bin/env python
-import numpy as np
-import cv2, colorsys
-import math, random
-
-import config
-import rpi, strip
-
-# ------------------------------    
-
-class Mode(object):
-  def __init__(self):
-    super(Mode, self).__init__()
-    
-    depth = (config.VIDEO_HEIGHT, config.VIDEO_WIDTH, 3)
-    self.image = np.zeros(depth, np.uint8)
-
-  def setup(self):
-    pass
-
-  def cleanup(self):
-    pass
-
-  def adjust(self, index):
-    pass
-
-  def draw(self):
-    return self.image
-
-class FixedColorMode(Mode):
-  def __init__(self):
-    super(FixedColorMode, self).__init__()
-
-    self.hue = 0.0
-    self.increment = 0.1
-
-  def setup(self):
-    self.hue = 0.0
-
-  def adjust(self, index):
-    if index == 0:
-      self.hue -= self.increment
-    else:
-      self.hue += self.increment
-
-    if self.hue < 0.0:
-      self.hue = 1.0
-
-    if self.hue > 1.0:
-      self.hue = 0.0
-
-  def draw(self):
-    rgb = colorsys.hsv_to_rgb(self.hue, 1.0, 1.0)
-    color = ( int(rgb[1] * 255.0), int(rgb[2] * 255.0), int(rgb[0] * 255.0) )
-
-    cv2.rectangle(self.image, (0, 0), (config.VIDEO_WIDTH, config.VIDEO_HEIGHT), color, -1 )
-
-    return self.image
-
-class CyclingColorMode(Mode):
-  def __init__(self):
-    super(CyclingColorMode, self).__init__()
-
-    self.hue = 0.0
-    self.increment = 0.05
-
-  def setup(self):
-    self.hue = 0.0
-
-  def draw(self):
-    rgb = colorsys.hsv_to_rgb(self.hue, 1.0, 1.0)
-    color = ( int(rgb[1] * 255.0), int(rgb[2] * 255.0), int(rgb[0] * 255.0) )
-
-    cv2.rectangle(self.image, (0, 0), (config.VIDEO_WIDTH, config.VIDEO_HEIGHT), color, -1 )
-
-    self.hue += self.increment
-    if self.hue > 1.0:
-      self.hue = 0.0
-
-    return self.image
-
-# ------------------------------
+import config, cv2, time
+import rpi, strip, modes, analysers, network
 
 class Manager(object):
   def __init__(self):
@@ -90,8 +11,8 @@ class Manager(object):
     self.rgb_b = config.RPI_RGB_LEDS[1]
 
     self.modes = [
-      FixedColorMode(),
-      CyclingColorMode()
+      modes.FixedColorMode(),
+      modes.CyclingColorMode()
     ]
 
     self.mode = False
@@ -99,6 +20,13 @@ class Manager(object):
     self.toggle(self.mode_index)
 
     self.window = False
+
+    self.network = network.Broadcast()
+
+    self.analyser = analysers.HueAnalyser((0, 0), (config.VIDEO_WIDTH, config.VIDEO_HEIGHT))
+
+  def cleanup(self): 
+    self.strip.cleanup()
 
   def toggle(self, mode_index = False):
     if mode_index is not False:
@@ -126,13 +54,19 @@ class Manager(object):
   def go(self):
     image = self.mode.draw()
 
-    if config.OUTPUT_SURROUND:
-      image = self.rgb_a.process_image(image)
-      image = self.rgb_b.process_image(image)
+    self.analyser.process(image)
 
+    if config.OUTPUT_SURROUND:
+      self.rgb_a.set_color(self.analyser.color())
+      self.rgb_b.set_color(self.analyser.color())
+      self.network.send(self.analyser.color())
+    
     if config.OUTPUT_STRIP:
-      image = self.strip.process_image(image)
+      self.strip.set_rgb_color(self.analyser.color())
 
     if config.OUTPUT_WINDOW:
       self.window = cv2.imshow('LiveLights', image)
       self.window = cv2.waitKey(int(config.FPS * 1000))
+    else:
+      time.sleep(config.FPS)
+

@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import colorsys
 import socket
+import numpy as np
 
 
 # CONSTANTS
@@ -46,14 +47,10 @@ sock.bind((UDP_IP, UDP_PORT))
 
 # LISTEN
 # -------------------------------------
-hue = 0.0
-brightness = 1.0
-saturation = 1.0
-
 while True:
-  hue, addr = sock.recvfrom(4)
-  
-  color = colorsys.hsv_to_rgb(float(hue), saturation, brightness)
-  PWM_PINS['rgb_1_r'].ChangeDutyCycle(int(color[0]*100.0))
-  PWM_PINS['rgb_1_g'].ChangeDutyCycle(int(color[1]*100.0))
-  PWM_PINS['rgb_1_b'].ChangeDutyCycle(int(color[2]*100.0))
+  rgb, addr = sock.recvfrom(11)
+  rgb = rgb.split(",")
+
+  PWM_PINS['rgb_1_r'].ChangeDutyCycle(np.interp(int(rgb[0]), [0,255], [0,100]))
+  PWM_PINS['rgb_1_g'].ChangeDutyCycle(np.interp(int(rgb[1]), [0,255], [0,100]))
+  PWM_PINS['rgb_1_b'].ChangeDutyCycle(np.interp(int(rgb[2]), [0,255], [0,100]))
